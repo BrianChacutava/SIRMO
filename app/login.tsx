@@ -1,23 +1,32 @@
-import { Image } from 'expo-image';
-import { Stack, useRouter } from 'expo-router';
-import { useState } from 'react';
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Image } from "expo-image";
+import { Stack, useRouter } from "expo-router";
+import { useState } from "react";
+import { Pressable, StyleSheet, TextInput, View } from "react-native";
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { useThemeColor } from '@/hooks/use-theme-color';
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { useThemeColor } from "@/hooks/use-theme-color";
 
 export default function LoginScreen() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  const cardBackground = useThemeColor({ light: '#ffffff', dark: '#1f2937' }, 'background');
-  const inputBackground = useThemeColor({ light: '#f6f8fa', dark: '#111827' }, 'background');
-  const inputBorder = useThemeColor({ light: '#d1d5db', dark: '#374151' }, 'background');
+  const cardBackground = useThemeColor(
+    { light: "#ffffff", dark: "#1f2937" },
+    "background",
+  );
+  const inputBackground = useThemeColor(
+    { light: "#f6f8fa", dark: "#111827" },
+    "background",
+  );
+  const inputBorder = useThemeColor(
+    { light: "#d1d5db", dark: "#374151" },
+    "background",
+  );
 
   const handleLogin = () => {
-    router.replace('/(tabs)');
+    router.replace("/(tabs)");
   };
 
   return (
@@ -25,13 +34,17 @@ export default function LoginScreen() {
       <Stack.Screen options={{ headerShown: false }} />
 
       <View style={styles.brandContainer}>
-        <Image source={require('@/assets/images/sirmo.png')} style={styles.logo} contentFit="contain" />
+        <Image
+          source={require("@/assets/images/sirmo.png")}
+          style={styles.logo}
+          contentFit="contain"
+        />
         <ThemedText type="title" style={styles.brandTitle}>
           SIRMO
         </ThemedText>
       </View>
 
-      <View style={[styles.card, { backgroundColor: cardBackground }]}> 
+      <View style={[styles.card, { backgroundColor: cardBackground }]}>
         <ThemedText type="subtitle" style={styles.heading}>
           Faça login
         </ThemedText>
@@ -46,7 +59,10 @@ export default function LoginScreen() {
           placeholderTextColor="#9ca3af"
           autoCapitalize="none"
           keyboardType="email-address"
-          style={[styles.input, { backgroundColor: inputBackground, borderColor: inputBorder }]}
+          style={[
+            styles.input,
+            { backgroundColor: inputBackground, borderColor: inputBorder },
+          ]}
         />
         <TextInput
           value={password}
@@ -54,7 +70,10 @@ export default function LoginScreen() {
           placeholder="Senha"
           placeholderTextColor="#9ca3af"
           secureTextEntry
-          style={[styles.input, { backgroundColor: inputBackground, borderColor: inputBorder }]}
+          style={[
+            styles.input,
+            { backgroundColor: inputBackground, borderColor: inputBorder },
+          ]}
         />
 
         <Pressable style={styles.button} onPress={handleLogin}>
@@ -71,11 +90,11 @@ const styles = StyleSheet.create({
   page: {
     flex: 1,
     padding: 24,
-    justifyContent: 'center',
-    backgroundColor: '#f7fafc',
+    justifyContent: "center",
+    backgroundColor: "#f7fafc",
   },
   brandContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 32,
   },
   logo: {
@@ -90,7 +109,7 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 24,
     padding: 24,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOpacity: 0.08,
     shadowRadius: 24,
     shadowOffset: { width: 0, height: 8 },
@@ -101,7 +120,7 @@ const styles = StyleSheet.create({
   },
   description: {
     marginBottom: 24,
-    color: '#6b7280',
+    color: "#6b7280",
   },
   input: {
     height: 52,
@@ -109,17 +128,17 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingHorizontal: 16,
     marginBottom: 16,
-    color: '#111827',
+    color: "#111827",
   },
   button: {
-    backgroundColor: '#0a7ea4',
+    backgroundColor: "#0a7ea4",
     height: 52,
     borderRadius: 14,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   buttonLabel: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
   },
 });

@@ -1,43 +1,53 @@
-import { Pressable, StyleSheet, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter } from "expo-router";
+import { Pressable, StyleSheet, View } from "react-native";
 
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { useThemeColor } from '@/hooks/use-theme-color';
-import { Fonts } from '@/constants/theme';
+import ParallaxScrollView from "@/components/parallax-scroll-view";
+import { ThemedText } from "@/components/themed-text";
+import { IconSymbol } from "@/components/ui/icon-symbol";
+import { Fonts } from "@/constants/theme";
+import { useThemeColor } from "@/hooks/use-theme-color";
 
 const menuData = [
   {
-    title: 'Gestão de candidatos',
-    items: ['Cadastrar candidato', 'Lista de candidatos', 'Acompanhar status'],
+    title: "Gestão de candidatos",
+    items: ["Cadastrar candidato", "Lista de candidatos", "Acompanhar status"],
   },
   {
-    title: 'Processos seletivos',
-    items: ['Abrir nova vaga', 'Vagas ativas', 'Histórico de seleção'],
+    title: "Processos seletivos",
+    items: ["Abrir nova vaga", "Vagas ativas", "Histórico de seleção"],
   },
   {
-    title: 'Avaliações',
-    items: ['Agendar exame', 'Resultados', 'Relatórios de desempenho'],
+    title: "Avaliações",
+    items: ["Agendar exame", "Resultados", "Relatórios de desempenho"],
   },
   {
-    title: 'Documentação',
-    items: ['Enviar documentos', 'Verificar pendências', 'Imprimir comprovantes'],
+    title: "Documentação",
+    items: [
+      "Enviar documentos",
+      "Verificar pendências",
+      "Imprimir comprovantes",
+    ],
   },
   {
-    title: 'Comunicação',
-    items: ['Notificações', 'Mensagens', 'Avisos oficiais'],
+    title: "Comunicação",
+    items: ["Notificações", "Mensagens", "Avisos oficiais"],
   },
 ];
 
 export default function TabTwoScreen() {
   const router = useRouter();
-  const sectionBackground = useThemeColor({ light: '#eef2ff', dark: '#1f2937' }, 'background');
-  const buttonBackground = useThemeColor({ light: '#ffffff', dark: '#111827' }, 'background');
+  const sectionBackground = useThemeColor(
+    { light: "#eef2ff", dark: "#1f2937" },
+    "background",
+  );
+  const buttonBackground = useThemeColor(
+    { light: "#ffffff", dark: "#111827" },
+    "background",
+  );
 
   return (
     <ParallaxScrollView
-      headerBackgroundColor={{ light: '#dbeafe', dark: '#111827' }}
+      headerBackgroundColor={{ light: "#dbeafe", dark: "#111827" }}
       headerImage={
         <IconSymbol
           size={260}
@@ -45,20 +55,26 @@ export default function TabTwoScreen() {
           name="shield.lefthalf.fill"
           style={styles.headerImage}
         />
-      }>
+      }
+    >
       <View style={styles.topBar}>
         <ThemedText type="title" style={styles.title}>
           Recrutamento Militar
         </ThemedText>
-        <Pressable style={styles.logoutButton} onPress={() => router.replace('/login')}>
+        <Pressable
+          style={styles.logoutButton}
+          onPress={() => router.replace("/login")}
+        >
           <ThemedText type="defaultSemiBold" style={styles.logoutLabel}>
             Logout
           </ThemedText>
         </Pressable>
       </View>
-      <ThemedText style={styles.subtitle}>Sistema de recrutamento militar online</ThemedText>
+      <ThemedText style={styles.subtitle}>
+        Sistema de recrutamento militar online
+      </ThemedText>
 
-      <View style={[styles.section, { backgroundColor: sectionBackground }]}> 
+      <View style={[styles.section, { backgroundColor: sectionBackground }]}>
         <ThemedText type="subtitle" style={styles.sectionTitle}>
           Menu Principal
         </ThemedText>
@@ -69,7 +85,13 @@ export default function TabTwoScreen() {
             </ThemedText>
             <View style={styles.submenuList}>
               {menu.items.map((item) => (
-                <Pressable key={item} style={[styles.menuButton, { backgroundColor: buttonBackground }]}> 
+                <Pressable
+                  key={item}
+                  style={[
+                    styles.menuButton,
+                    { backgroundColor: buttonBackground },
+                  ]}
+                >
                   <ThemedText style={styles.menuButtonLabel}>{item}</ThemedText>
                 </Pressable>
               ))}
@@ -78,16 +100,20 @@ export default function TabTwoScreen() {
         ))}
       </View>
 
-      <View style={[styles.section, { backgroundColor: sectionBackground }]}> 
+      <View style={[styles.section, { backgroundColor: sectionBackground }]}>
         <ThemedText type="subtitle" style={styles.sectionTitle}>
           Ações rápidas
         </ThemedText>
         <View style={styles.quickActions}>
           <Pressable style={styles.quickActionButton}>
-            <ThemedText style={styles.quickActionLabel}>Novo Registro</ThemedText>
+            <ThemedText style={styles.quickActionLabel}>
+              Novo Registro
+            </ThemedText>
           </Pressable>
           <Pressable style={styles.quickActionButton}>
-            <ThemedText style={styles.quickActionLabel}>Agenda de Exames</ThemedText>
+            <ThemedText style={styles.quickActionLabel}>
+              Agenda de Exames
+            </ThemedText>
           </Pressable>
           <Pressable style={styles.quickActionButton}>
             <ThemedText style={styles.quickActionLabel}>Relatórios</ThemedText>
@@ -96,7 +122,8 @@ export default function TabTwoScreen() {
       </View>
 
       <ThemedText style={styles.footerText}>
-        Use os botões acima para navegar pelos principais módulos do sistema e pressione Logout para voltar à tela de login.
+        Use os botões acima para navegar pelos principais módulos do sistema e
+        pressione Logout para voltar à tela de login.
       </ThemedText>
     </ParallaxScrollView>
   );
@@ -104,15 +131,15 @@ export default function TabTwoScreen() {
 
 const styles = StyleSheet.create({
   headerImage: {
-    color: '#4f46e5',
+    color: "#4f46e5",
     bottom: -60,
     left: -30,
-    position: 'absolute',
+    position: "absolute",
   },
   topBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     gap: 12,
     marginBottom: 12,
   },
@@ -124,14 +151,14 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 14,
-    backgroundColor: '#0a7ea4',
+    backgroundColor: "#0a7ea4",
   },
   logoutLabel: {
-    color: '#ffffff',
+    color: "#ffffff",
   },
   subtitle: {
     marginBottom: 20,
-    color: '#475569',
+    color: "#475569",
   },
   section: {
     borderRadius: 24,
@@ -156,14 +183,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#cbd5e1',
+    borderColor: "#cbd5e1",
   },
   menuButtonLabel: {
     fontSize: 16,
   },
   quickActions: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 12,
   },
   quickActionButton: {
@@ -172,15 +199,15 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderRadius: 16,
-    backgroundColor: '#0a7ea4',
-    alignItems: 'center',
+    backgroundColor: "#0a7ea4",
+    alignItems: "center",
   },
   quickActionLabel: {
-    color: '#ffffff',
-    fontWeight: '600',
+    color: "#ffffff",
+    fontWeight: "600",
   },
   footerText: {
     marginTop: 8,
-    color: '#475569',
+    color: "#475569",
   },
 });
