@@ -1,98 +1,196 @@
 import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useRouter } from 'expo-router';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { useThemeColor } from '@/hooks/use-theme-color';
+
+const actions = [
+  { title: 'Cadastro', route: '/cadastro', icon: 'person.crop.circle.fill' },
+  { title: 'Recrutamento', route: '/recrutamento', icon: 'shield.lefthalf.fill' },
+  { title: 'Configurações', route: '/configuracoes', icon: 'gearshape.fill' },
+] as const;
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const router = useRouter();
+  const background = useThemeColor({ light: '#f0f9ff', dark: '#111827' }, 'background');
+  const cardBackground = useThemeColor({ light: '#ffffff', dark: '#1f2937' }, 'background');
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  return (
+    <ThemedView style={[styles.page, { backgroundColor: background }]}> 
+      <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.header}>
+          <Pressable style={styles.logoutButton} onPress={() => router.replace('/login')}>
+            <IconSymbol name="arrow.right.square.fill" size={20} color="#ffffff" />
+            <ThemedText style={styles.logoutLabel}>Logout</ThemedText>
+          </Pressable>
+        </View>
+
+        <View style={styles.logoContainer}>
+          <Image source={require('@/assets/images/sirmo.png')} style={styles.logo} contentFit="contain" />
+        </View>
+
+        <View style={[styles.card, { backgroundColor: cardBackground }]}> 
+          <ThemedText type="subtitle" style={styles.cardTitle}>Etapas do recrutamento militar</ThemedText>
+          <View style={styles.etapaItem}>
+            <ThemedText type="defaultSemiBold" style={styles.etapaNumber}>1</ThemedText>
+            <ThemedText style={styles.etapaText}>Inscrição online e envio de documentos</ThemedText>
+          </View>
+          <View style={styles.etapaItem}>
+            <ThemedText type="defaultSemiBold" style={styles.etapaNumber}>2</ThemedText>
+            <ThemedText style={styles.etapaText}>Análise documental e verificação</ThemedText>
+          </View>
+          <View style={styles.etapaItem}>
+            <ThemedText type="defaultSemiBold" style={styles.etapaNumber}>3</ThemedText>
+            <ThemedText style={styles.etapaText}>Exame médico e odontológico</ThemedText>
+          </View>
+          <View style={styles.etapaItem}>
+            <ThemedText type="defaultSemiBold" style={styles.etapaNumber}>4</ThemedText>
+            <ThemedText style={styles.etapaText}>Teste de aptidão física</ThemedText>
+          </View>
+          <View style={styles.etapaItem}>
+            <ThemedText type="defaultSemiBold" style={styles.etapaNumber}>5</ThemedText>
+            <ThemedText style={styles.etapaText}>Entrevista e avaliação psicológica</ThemedText>
+          </View>
+          <View style={styles.etapaItem}>
+            <ThemedText type="defaultSemiBold" style={styles.etapaNumber}>6</ThemedText>
+            <ThemedText style={styles.etapaText}>Incorporação ao serviço militar</ThemedText>
+          </View>
+        </View>
+
+        <View style={[styles.card, { backgroundColor: cardBackground }]}> 
+          <ThemedText type="subtitle" style={styles.cardTitle}>Requisitos básicos</ThemedText>
+          <ThemedText style={styles.requisitoText}>• Idade entre 18 e 45 anos</ThemedText>
+          <ThemedText style={styles.requisitoText}>• Ensino médio completo</ThemedText>
+          <ThemedText style={styles.requisitoText}>• Boa saúde física e mental</ThemedText>
+          <ThemedText style={styles.requisitoText}>• Não possuir antecedentes criminais</ThemedText>
+          <ThemedText style={styles.requisitoText}>• Nacionalidade brasileira</ThemedText>
+          <ThemedText style={styles.requisitoText}>• Aptidão para o serviço militar</ThemedText>
+        </View>
+
+        <View style={styles.section}> 
+          <ThemedText type="subtitle" style={styles.sectionTitle}>Ações rápidas</ThemedText>
+          <View style={styles.actionsGrid}>
+            {actions.map((action) => (
+              <Pressable
+                key={action.title}
+                style={[styles.actionCard, { backgroundColor: cardBackground }]}
+                onPress={() => router.push(action.route)}>
+                <View style={styles.actionIcon}>
+                  <IconSymbol name={action.icon} size={20} color="#0a7ea4" />
+                </View>
+                <ThemedText type="defaultSemiBold" style={styles.actionLabel}>
+                  {action.title}
+                </ThemedText>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      </ScrollView>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  page: {
+    flex: 1,
+  },
+  content: {
+    padding: 24,
+    paddingBottom: 32,
+  },
+  header: {
+    alignItems: 'flex-end',
+    marginBottom: 20,
+  },
+  logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 14,
+    backgroundColor: '#0a7ea4',
     gap: 8,
   },
-  stepContainer: {
-    gap: 8,
+  logoutLabel: {
+    color: '#ffffff',
+    fontWeight: '600',
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  logo: {
+    width: 150,
+    height: 150,
+  },
+  card: {
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 18,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  cardTitle: {
+    marginBottom: 16,
+  },
+  etapaItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  etapaNumber: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#0a7ea4',
+    color: '#ffffff',
+    textAlign: 'center',
+    textAlignVertical: 'center',
+    marginRight: 12,
+    fontSize: 14,
+  },
+  etapaText: {
+    flex: 1,
+    color: '#475569',
+  },
+  requisitoText: {
     marginBottom: 8,
+    color: '#475569',
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  section: {
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    marginBottom: 14,
+  },
+  actionsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  actionCard: {
+    width: '48%',
+    borderRadius: 20,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  actionIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 14,
+    backgroundColor: '#e0f2fe',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  actionLabel: {
+    flex: 1,
   },
 });

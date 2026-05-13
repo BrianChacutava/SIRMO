@@ -5,7 +5,6 @@ import { SymbolWeight, SymbolViewProps } from 'expo-symbols';
 import { ComponentProps } from 'react';
 import { OpaqueColorValue, type StyleProp, type TextStyle } from 'react-native';
 
-type IconMapping = Record<SymbolViewProps['name'], ComponentProps<typeof MaterialIcons>['name']>;
 type IconSymbolName = keyof typeof MAPPING;
 
 /**
@@ -18,7 +17,31 @@ const MAPPING = {
   'paperplane.fill': 'send',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
-} as IconMapping;
+  'shield.lefthalf.fill': 'shield',
+  'gearshape.fill': 'settings',
+  'person.crop.circle.fill': 'person',
+  'person.text.rectangle.fill': 'person',
+  'shield.fill': 'security',
+  'arrow.up.doc.fill': 'upload',
+  'figure.run': 'directions-run',
+  'bubble.left.and.bubble.right.fill': 'chat',
+  'checkmark.seal.fill': 'verified',
+  'circle': 'radio-button-unchecked',
+  'checkmark.circle.fill': 'check-circle',
+  'clock.fill': 'schedule',
+  'arrow.right.square.fill': 'logout',
+  'plus.circle.fill': 'add-circle',
+  'bell.fill': 'notifications',
+  'lock.fill': 'lock',
+  'slider.horizontal.3': 'tune',
+  'questionmark.circle.fill': 'help',
+  'doc.text.fill': 'description',
+  'flag.fill': 'flag',
+  'person.3.fill': 'groups',
+  'calendar': 'event',
+  'chart.bar.fill': 'bar-chart',
+  'stethoscope': 'local-hospital',
+} as const;
 
 /**
  * An icon component that uses native SF Symbols on iOS, and Material Icons on Android and web.
@@ -31,11 +54,11 @@ export function IconSymbol({
   color,
   style,
 }: {
-  name: IconSymbolName;
+  name: string;
   size?: number;
   color: string | OpaqueColorValue;
   style?: StyleProp<TextStyle>;
   weight?: SymbolWeight;
 }) {
-  return <MaterialIcons color={color} size={size} name={MAPPING[name]} style={style} />;
+  return <MaterialIcons color={color} size={size} name={MAPPING[name as IconSymbolName]} style={style} />;
 }
