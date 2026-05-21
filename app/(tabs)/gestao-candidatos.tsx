@@ -1,42 +1,48 @@
 import { useRouter } from "expo-router";
+import { useCallback, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
+
+import { BackButton } from "@/components/back-button";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useThemeColor } from "@/hooks/use-theme-color";
-
-const candidatos = [
-  { id: 1, nome: "João Silva", status: "Em análise", documentos: "Pendente" },
-  { id: 2, nome: "Maria Santos", status: "Aprovado", documentos: "Completo" },
-  {
-    id: 3,
-    nome: "Pedro Oliveira",
-    status: "Reprovado",
-    documentos: "Incompleto",
-  },
-];
+import { Candidate, getAllCandidates, initDatabase } from "@/lib/db";
 
 export default function GestaoCandidatosScreen() {
   const router = useRouter();
-  const background = useThemeColor(
-    { light: "#f8fafc", dark: "#0f172a" },
-    "background",
-  );
-  const cardBackground = useThemeColor(
-    { light: "#ffffff", dark: "#111827" },
-    "background",
+  const [candidatos, setCandidatos] = useState<Candidate[]>([]);
+  const background = useThemeColor({ light: "#f8fafc" }, "background");
+  const cardBackground = useThemeColor({ light: "#ffffff" }, "background");
+
+  const loadCandidates = useCallback(async () => {
+    try {
+      await initDatabase();
+      const loaded = await getAllCandidates();
+      setCandidatos(loaded);
+    } catch (error) {
+      console.error("Erro ao carregar candidatos", error);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadCandidates();
+    }, [loadCandidates]),
   );
 
   return (
-    <ThemedView style={[styles.page, { backgroundColor: background }]}>
+    <ThemedView style={[styles.page, { backgroundColor: background }]}> 
       <ScrollView contentContainerStyle={styles.content}>
+        <BackButton />
         <View style={styles.header}>
           <ThemedText type="title" style={styles.title}>
             Gestão de candidatos
           </ThemedText>
           <ThemedText style={styles.subtitle}>
-            Acompanhe o registro, entrevista e aprovação dos candidatos.
+            Acompanhe o registro e os documentos dos candidatos.
           </ThemedText>
         </View>
 
@@ -50,52 +56,58 @@ export default function GestaoCandidatosScreen() {
           </Pressable>
         </View>
 
-        <View style={[styles.section, { backgroundColor: cardBackground }]}>
+        <View style={[styles.section, { backgroundColor: cardBackground }]}> 
           <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
             Candidatos registrados
           </ThemedText>
-          {candidatos.map((candidato) => (
-            <View key={candidato.id} style={styles.candidatoCard}>
-              <View style={styles.candidatoInfo}>
-                <ThemedText type="defaultSemiBold">{candidato.nome}</ThemedText>
-                <ThemedText style={styles.status}>
-                  Status: {candidato.status}
-                </ThemedText>
-                <ThemedText style={styles.documentos}>
-                  Documentos: {candidato.documentos}
-                </ThemedText>
+          {candidatos.length === 0 ? (
+            <ThemedText style={styles.emptyText}>
+              Não há candidatos cadastrados ainda.
+            </ThemedText>
+          ) : (
+            candidatos.map((candidato) => (
+              <View key={candidato.id} style={styles.candidatoCard}>
+                <View style={styles.candidatoInfo}>
+                  <ThemedText type="defaultSemiBold">{candidato.nome}</ThemedText>
+                  <ThemedText style={styles.status}>
+                    Documento: {candidato.documentoTipo} {candidato.documentoNumero}
+                  </ThemedText>
+                  <ThemedText style={styles.documentos}>
+                    CPF: {candidato.cpf}
+                  </ThemedText>
+                </View>
+                <View style={styles.candidatoActions}>
+                  <Pressable
+                    style={styles.smallButton}
+                    onPress={() => router.push("./adicionar-documentos")}
+                  >
+                    <IconSymbol name="doc.text.fill" size={16} color="#0a7ea4" />
+                    <ThemedText style={styles.smallButtonLabel}>
+                      Documentos
+                    </ThemedText>
+                  </Pressable>
+                  <Pressable
+                    style={styles.smallButton}
+                    onPress={() => router.push("./status-selecao")}
+                  >
+                    <IconSymbol name="flag.fill" size={16} color="#0a7ea4" />
+                    <ThemedText style={styles.smallButtonLabel}>
+                      Status
+                    </ThemedText>
+                  </Pressable>
+                  <Pressable
+                    style={styles.smallButton}
+                    onPress={() => router.push("./documentacao")}
+                  >
+                    <IconSymbol name="doc.text.fill" size={16} color="#0a7ea4" />
+                    <ThemedText style={styles.smallButtonLabel}>
+                      Consulta
+                    </ThemedText>
+                  </Pressable>
+                </View>
               </View>
-              <View style={styles.candidatoActions}>
-                <Pressable
-                  style={styles.smallButton}
-                  onPress={() => router.push("/adicionar-documentos")}
-                >
-                  <IconSymbol name="doc.text.fill" size={16} color="#0a7ea4" />
-                  <ThemedText style={styles.smallButtonLabel}>
-                    Documentos
-                  </ThemedText>
-                </Pressable>
-                <Pressable
-                  style={styles.smallButton}
-                  onPress={() => router.push("/status-selecao")}
-                >
-                  <IconSymbol name="flag.fill" size={16} color="#0a7ea4" />
-                  <ThemedText style={styles.smallButtonLabel}>
-                    Status
-                  </ThemedText>
-                </Pressable>
-                <Pressable
-                  style={styles.smallButton}
-                  onPress={() => router.push("/documentacao")}
-                >
-                  <IconSymbol name="doc.text.fill" size={16} color="#0a7ea4" />
-                  <ThemedText style={styles.smallButtonLabel}>
-                    Consulta
-                  </ThemedText>
-                </Pressable>
-              </View>
-            </View>
-          ))}
+            ))
+          )}
         </View>
       </ScrollView>
     </ThemedView>
@@ -142,6 +154,11 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     marginBottom: 16,
+  },
+  emptyText: {
+    color: "#64748b",
+    fontSize: 14,
+    marginTop: 10,
   },
   candidatoCard: {
     flexDirection: "row",

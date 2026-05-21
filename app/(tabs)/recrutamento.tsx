@@ -1,6 +1,8 @@
 import { useRouter } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 
+import { BackButton } from "@/components/back-button";
+
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -10,31 +12,31 @@ const menuItems = [
   {
     title: "Gestão de candidatos",
     description: "Cadastrar candidatos e acompanhar status.",
-    route: "/gestao-candidatos",
+    route: "./gestao-candidatos",
     icon: "person.3.fill",
   },
   {
     title: "Processos seletivos",
     description: "Gerenciar vagas e etapas de seleção.",
-    route: "/processos-seletivos",
+    route: "./processos-seletivos",
     icon: "flag.fill",
   },
   {
     title: "Avaliações",
     description: "Agendar exames e consultar resultados.",
-    route: "/avaliacoes",
+    route: "./avaliacoes",
     icon: "doc.text.fill",
   },
   {
     title: "Documentação",
     description: "Enviar e verificar documentos pendentes.",
-    route: "/documentacao",
+    route: "./documentacao",
     icon: "doc.text.fill",
   },
   {
     title: "Comunicação",
     description: "Mensagens oficiais e notificações.",
-    route: "/comunicacao",
+    route: "./comunicacao",
     icon: "bubble.left.and.bubble.right.fill",
   },
 ] as const;
@@ -53,6 +55,7 @@ export default function RecrutamentoScreen() {
   return (
     <ThemedView style={[styles.page, { backgroundColor: background }]}>
       <ScrollView contentContainerStyle={styles.content}>
+        <BackButton />
         <View style={styles.header}>
           <View style={styles.pageHeader}>
             <ThemedText type="title">Recrutamento Militar</ThemedText>
@@ -105,21 +108,21 @@ export default function RecrutamentoScreen() {
           <View style={styles.quickActions}>
             <Pressable
               style={styles.actionButton}
-              onPress={() => router.push("/gestao-candidatos")}
+              onPress={() => router.push("./gestao-candidatos")}
             >
               <IconSymbol name="plus.circle.fill" size={22} color="#ffffff" />
               <ThemedText style={styles.actionLabel}>Novo registro</ThemedText>
             </Pressable>
             <Pressable
               style={styles.actionButton}
-              onPress={() => router.push("/processos-seletivos")}
+              onPress={() => router.push("./processos-seletivos")}
             >
               <IconSymbol name="calendar" size={22} color="#ffffff" />
               <ThemedText style={styles.actionLabel}>Agenda</ThemedText>
             </Pressable>
             <Pressable
               style={styles.actionButton}
-              onPress={() => router.push("/avaliacoes")}
+              onPress={() => router.push("./avaliacoes")}
             >
               <IconSymbol name="chart.bar.fill" size={22} color="#ffffff" />
               <ThemedText style={styles.actionLabel}>Relatórios</ThemedText>
@@ -168,6 +171,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   menuButton: {
+    width: "100%",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -204,18 +208,21 @@ const styles = StyleSheet.create({
   quickActions: {
     flexDirection: "row",
     flexWrap: "wrap",
+    justifyContent: "space-between",
     gap: 12,
   },
   actionButton: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    justifyContent: "center",
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderRadius: 18,
     backgroundColor: "#0a7ea4",
-    minWidth: "30%",
+    minWidth: 110,
     marginBottom: 12,
+    marginRight: 8,
   },
   actionLabel: {
     color: "#ffffff",

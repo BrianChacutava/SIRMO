@@ -1,48 +1,52 @@
-import { ScrollView, StyleSheet, View } from "react-native";
+import { useRouter } from "expo-router";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 
+import { BackButton } from "@/components/back-button";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useThemeColor } from "@/hooks/use-theme-color";
 
 export default function CadastroScreen() {
-  const background = useThemeColor(
-    { light: "#f8fafc", dark: "#0f172a" },
-    "background",
-  );
-  const cardBackground = useThemeColor(
-    { light: "#ffffff", dark: "#111827" },
-    "background",
-  );
+  const router = useRouter();
+  const background = useThemeColor({ light: "#f8fafc" }, "background");
+  const cardBackground = useThemeColor({ light: "#ffffff" }, "background");
 
   return (
-    <ThemedView style={[styles.page, { backgroundColor: background }]}>
+    <ThemedView style={[styles.page, { backgroundColor: background }]}> 
       <ScrollView contentContainerStyle={styles.content}>
+        <BackButton />
         <ThemedText type="title" style={styles.title}>
           Cadastro
         </ThemedText>
         <ThemedText style={styles.subtitle}>
-          Formulário de cadastro disponível para novos candidatos e
-          colaboradores.
+          Registre candidatos com base em documentos de identidade e mantenha os dados em SQLite.
         </ThemedText>
 
-        <View style={[styles.card, { backgroundColor: cardBackground }]}>
+        <View style={[styles.card, { backgroundColor: cardBackground }]}> 
           <ThemedText type="defaultSemiBold" style={styles.cardTitle}>
-            Novo cadastro
+            Cadastro por documento
           </ThemedText>
           <ThemedText style={styles.cardDescription}>
-            Neste módulo você poderá registrar informações básicas do candidato,
-            documentos e status de admissão.
+            Faça o cadastro do candidato incluindo foto do documento e pré-preenchimento automático.
           </ThemedText>
+
+          <Pressable style={styles.primaryButton} onPress={() => router.push("./novo-candidato")}> 
+            <ThemedText type="defaultSemiBold" style={styles.primaryLabel}>
+              Cadastrar novo candidato
+            </ThemedText>
+          </Pressable>
+
           <View style={styles.infoItem}>
-            <ThemedText type="defaultSemiBold">Passos do cadastro</ThemedText>
+            <ThemedText type="defaultSemiBold">Como funciona</ThemedText>
             <ThemedText style={styles.infoText}>
-              1. Dados pessoais 2. Documentação 3. Avaliação médica 4. Aprovação
+              1. Preencha os dados do candidato 2. Faça upload ou tire foto do documento 3. Os campos são preenchidos automaticamente 4. Salve na base SQLite
             </ThemedText>
           </View>
+
           <View style={styles.infoItem}>
-            <ThemedText type="defaultSemiBold">Recomendações</ThemedText>
+            <ThemedText type="defaultSemiBold">Status do cadastro</ThemedText>
             <ThemedText style={styles.infoText}>
-              Confirme todos os campos antes de enviar para evitar retrabalho.
+              Os cadastros já realizados ficam disponíveis na gestão de candidatos.
             </ThemedText>
           </View>
         </View>
@@ -77,8 +81,20 @@ const styles = StyleSheet.create({
     marginBottom: 18,
     color: "#475569",
   },
+  primaryButton: {
+    marginTop: 16,
+    paddingVertical: 14,
+    borderRadius: 16,
+    backgroundColor: "#0a7ea4",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  primaryLabel: {
+    color: "#ffffff",
+    fontSize: 16,
+  },
   infoItem: {
-    marginBottom: 16,
+    marginTop: 18,
   },
   infoText: {
     marginTop: 6,

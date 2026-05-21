@@ -1,5 +1,6 @@
 import { ScrollView, StyleSheet, View } from "react-native";
 
+import { BackButton } from "@/components/back-button";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -83,6 +84,7 @@ export default function StatusSelecaoScreen() {
   return (
     <ThemedView style={[styles.page, { backgroundColor: background }]}>
       <ScrollView contentContainerStyle={styles.content}>
+        <BackButton />
         <ThemedText type="title" style={styles.title}>
           Status de seleção
         </ThemedText>

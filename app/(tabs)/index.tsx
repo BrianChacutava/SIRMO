@@ -2,19 +2,20 @@ import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 
+import { BackButton } from "@/components/back-button";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useThemeColor } from "@/hooks/use-theme-color";
 
 const actions = [
-  { title: "Cadastro", route: "/cadastro", icon: "person.crop.circle.fill" },
+  { title: "Cadastro", route: "./cadastro", icon: "person.crop.circle.fill" },
   {
     title: "Recrutamento",
-    route: "/recrutamento",
+    route: "./recrutamento",
     icon: "shield.lefthalf.fill",
   },
-  { title: "Configurações", route: "/configuracoes", icon: "gearshape.fill" },
+  { title: "Configurações", route: "./configuracoes", icon: "gearshape.fill" },
 ] as const;
 
 export default function HomeScreen() {
@@ -31,6 +32,7 @@ export default function HomeScreen() {
   return (
     <ThemedView style={[styles.page, { backgroundColor: background }]}>
       <ScrollView contentContainerStyle={styles.content}>
+        <BackButton />
         <View style={styles.header}>
           <Pressable
             style={styles.logoutButton}

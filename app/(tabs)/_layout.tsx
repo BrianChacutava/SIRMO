@@ -36,6 +36,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="cadastro"
+        options={{
+          title: "Cadastro",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="person.fill" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="configuracoes"
         options={{
           title: "Configurações",
@@ -43,6 +52,42 @@ export default function TabLayout() {
             <IconSymbol size={28} name="gearshape.fill" color={color} />
           ),
         }}
+      />
+      <Tabs.Screen
+        name="gestao-candidatos"
+        options={{ tabBarButton: () => null }}
+      />
+      <Tabs.Screen
+        name="novo-candidato"
+        options={{ tabBarButton: () => null }}
+      />
+      <Tabs.Screen
+        name="status-selecao"
+        options={{ tabBarButton: () => null }}
+      />
+      <Tabs.Screen
+        name="processos-seletivos"
+        options={{ tabBarButton: () => null }}
+      />
+      <Tabs.Screen
+        name="avaliacoes"
+        options={{ tabBarButton: () => null }}
+      />
+      <Tabs.Screen
+        name="documentacao"
+        options={{ tabBarButton: () => null }}
+      />
+      <Tabs.Screen
+        name="comunicacao"
+        options={{ tabBarButton: () => null }}
+      />
+      <Tabs.Screen
+        name="adicionar-documentos"
+        options={{ tabBarButton: () => null }}
+      />
+      <Tabs.Screen
+        name="explore"
+        options={{ tabBarButton: () => null }}
       />
     </Tabs>
   );
