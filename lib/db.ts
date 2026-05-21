@@ -32,27 +32,30 @@ export interface DocumentRecord {
   createdAt?: string;
 }
 
-const executeSql = async <T = any>(sql: string, params: (string | number)[] = []) => {
+const executeSql = async <T = any>(
+  sql: string,
+  params: (string | number)[] = [],
+) => {
   if (Platform.OS === "web") {
     // Not using SQLite on web; no-op placeholder to keep signatures consistent
-    return Promise.resolve({ rows: { length: 0, item: (_: number) => null }, insertId: undefined });
+    return Promise.resolve({
+      rows: { length: 0, item: (_: number) => null },
+      insertId: undefined,
+    });
   }
 
   return new Promise<SQLite.SQLResultSet>((resolve, reject) => {
-    db.transaction(
-      (tx: any) => {
-        tx.executeSql(
-          sql,
-          params,
-          (_: any, result: any) => resolve(result),
-          (_: any, error: any) => {
-            reject(error);
-            return false;
-          },
-        );
-      },
-      reject,
-    );
+    db.transaction((tx: any) => {
+      tx.executeSql(
+        sql,
+        params,
+        (_: any, result: any) => resolve(result),
+        (_: any, error: any) => {
+          reject(error);
+          return false;
+        },
+      );
+    }, reject);
   });
 };
 
@@ -90,13 +93,19 @@ export const initDatabase = async (): Promise<void> => {
   );
 };
 
-export const insertCandidate = async (candidate: Candidate): Promise<number> => {
+export const insertCandidate = async (
+  candidate: Candidate,
+): Promise<number> => {
   if (Platform.OS === "web") {
     const key = "sirmo_candidates";
     const raw = localStorage.getItem(key);
     const list: Candidate[] = raw ? JSON.parse(raw) : [];
-    const id = (list.length > 0 ? list[list.length - 1].id ?? 0 : 0) + 1;
-    const record: Candidate = { ...candidate, id, createdAt: new Date().toISOString() };
+    const id = (list.length > 0 ? (list[list.length - 1].id ?? 0) : 0) + 1;
+    const record: Candidate = {
+      ...candidate,
+      id,
+      createdAt: new Date().toISOString(),
+    };
     list.push(record);
     localStorage.setItem(key, JSON.stringify(list));
     return id;
@@ -119,13 +128,19 @@ export const insertCandidate = async (candidate: Candidate): Promise<number> => 
   return result.insertId as number;
 };
 
-export const insertDocument = async (document: DocumentRecord): Promise<number> => {
+export const insertDocument = async (
+  document: DocumentRecord,
+): Promise<number> => {
   if (Platform.OS === "web") {
     const key = "sirmo_documents";
     const raw = localStorage.getItem(key);
     const list: DocumentRecord[] = raw ? JSON.parse(raw) : [];
-    const id = (list.length > 0 ? list[list.length - 1].id ?? 0 : 0) + 1;
-    const record: DocumentRecord = { ...document, id, createdAt: new Date().toISOString() };
+    const id = (list.length > 0 ? (list[list.length - 1].id ?? 0) : 0) + 1;
+    const record: DocumentRecord = {
+      ...document,
+      id,
+      createdAt: new Date().toISOString(),
+    };
     list.push(record);
     localStorage.setItem(key, JSON.stringify(list));
     return id;
@@ -144,10 +159,14 @@ export const getAllCandidates = async (): Promise<Candidate[]> => {
     const raw = localStorage.getItem("sirmo_candidates");
     const list: Candidate[] = raw ? JSON.parse(raw) : [];
     // return in reverse chronological order
-    return list.sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
+    return list.sort((a, b) =>
+      (b.createdAt || "").localeCompare(a.createdAt || ""),
+    );
   }
 
-  const result = await executeSql(`SELECT * FROM candidates ORDER BY createdAt DESC;`);
+  const result = await executeSql(
+    `SELECT * FROM candidates ORDER BY createdAt DESC;`,
+  );
 
   const candidates: Candidate[] = [];
   const rows = result.rows;
@@ -165,10 +184,15 @@ export const getDocumentsByCandidateId = async (
   if (Platform.OS === "web") {
     const raw = localStorage.getItem("sirmo_documents");
     const list: DocumentRecord[] = raw ? JSON.parse(raw) : [];
-    return list.filter((d) => d.candidateId === candidateId).sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
+    return list
+      .filter((d) => d.candidateId === candidateId)
+      .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
   }
 
-  const result = await executeSql(`SELECT * FROM documents WHERE candidateId = ? ORDER BY createdAt DESC;`, [candidateId]);
+  const result = await executeSql(
+    `SELECT * FROM documents WHERE candidateId = ? ORDER BY createdAt DESC;`,
+    [candidateId],
+  );
 
   const documents: DocumentRecord[] = [];
   const rows = result.rows;
@@ -180,14 +204,19 @@ export const getDocumentsByCandidateId = async (
   return documents;
 };
 
-export const getCandidateById = async (id: number): Promise<Candidate | null> => {
+export const getCandidateById = async (
+  id: number,
+): Promise<Candidate | null> => {
   if (Platform.OS === "web") {
     const raw = localStorage.getItem("sirmo_candidates");
     const list: Candidate[] = raw ? JSON.parse(raw) : [];
     return list.find((c) => c.id === id) ?? null;
   }
 
-  const result = await executeSql(`SELECT * FROM candidates WHERE id = ? LIMIT 1;`, [id]);
+  const result = await executeSql(
+    `SELECT * FROM candidates WHERE id = ? LIMIT 1;`,
+    [id],
+  );
   if (result.rows.length === 0) return null;
   return result.rows.item(0);
 };
@@ -242,19 +271,26 @@ export const deleteCandidate = async (id: number): Promise<void> => {
   await executeSql(`DELETE FROM candidates WHERE id = ?;`, [id]);
 };
 
-export const getDocumentById = async (id: number): Promise<DocumentRecord | null> => {
+export const getDocumentById = async (
+  id: number,
+): Promise<DocumentRecord | null> => {
   if (Platform.OS === "web") {
     const raw = localStorage.getItem("sirmo_documents");
     const list: DocumentRecord[] = raw ? JSON.parse(raw) : [];
     return list.find((d) => d.id === id) ?? null;
   }
 
-  const result = await executeSql(`SELECT * FROM documents WHERE id = ? LIMIT 1;`, [id]);
+  const result = await executeSql(
+    `SELECT * FROM documents WHERE id = ? LIMIT 1;`,
+    [id],
+  );
   if (result.rows.length === 0) return null;
   return result.rows.item(0);
 };
 
-export const updateDocument = async (document: DocumentRecord): Promise<void> => {
+export const updateDocument = async (
+  document: DocumentRecord,
+): Promise<void> => {
   if (Platform.OS === "web") {
     const key = "sirmo_documents";
     const raw = localStorage.getItem(key);

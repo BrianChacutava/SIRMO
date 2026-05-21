@@ -1,7 +1,7 @@
+import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
 
 import { BackButton } from "@/components/back-button";
 
@@ -34,7 +34,7 @@ export default function GestaoCandidatosScreen() {
   );
 
   return (
-    <ThemedView style={[styles.page, { backgroundColor: background }]}> 
+    <ThemedView style={[styles.page, { backgroundColor: background }]}>
       <ScrollView contentContainerStyle={styles.content}>
         <BackButton />
         <View style={styles.header}>
@@ -56,7 +56,7 @@ export default function GestaoCandidatosScreen() {
           </Pressable>
         </View>
 
-        <View style={[styles.section, { backgroundColor: cardBackground }]}> 
+        <View style={[styles.section, { backgroundColor: cardBackground }]}>
           <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
             Candidatos registrados
           </ThemedText>
@@ -68,9 +68,12 @@ export default function GestaoCandidatosScreen() {
             candidatos.map((candidato) => (
               <View key={candidato.id} style={styles.candidatoCard}>
                 <View style={styles.candidatoInfo}>
-                  <ThemedText type="defaultSemiBold">{candidato.nome}</ThemedText>
+                  <ThemedText type="defaultSemiBold">
+                    {candidato.nome}
+                  </ThemedText>
                   <ThemedText style={styles.status}>
-                    Documento: {candidato.documentoTipo} {candidato.documentoNumero}
+                    Documento: {candidato.documentoTipo}{" "}
+                    {candidato.documentoNumero}
                   </ThemedText>
                   <ThemedText style={styles.documentos}>
                     CPF: {candidato.cpf}
@@ -81,7 +84,11 @@ export default function GestaoCandidatosScreen() {
                     style={styles.smallButton}
                     onPress={() => router.push("./adicionar-documentos")}
                   >
-                    <IconSymbol name="doc.text.fill" size={16} color="#0a7ea4" />
+                    <IconSymbol
+                      name="doc.text.fill"
+                      size={16}
+                      color="#0a7ea4"
+                    />
                     <ThemedText style={styles.smallButtonLabel}>
                       Documentos
                     </ThemedText>
@@ -99,7 +106,11 @@ export default function GestaoCandidatosScreen() {
                     style={styles.smallButton}
                     onPress={() => router.push("./documentacao")}
                   >
-                    <IconSymbol name="doc.text.fill" size={16} color="#0a7ea4" />
+                    <IconSymbol
+                      name="doc.text.fill"
+                      size={16}
+                      color="#0a7ea4"
+                    />
                     <ThemedText style={styles.smallButtonLabel}>
                       Consulta
                     </ThemedText>

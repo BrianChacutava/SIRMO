@@ -12,25 +12,30 @@ export default function CadastroScreen() {
   const cardBackground = useThemeColor({ light: "#ffffff" }, "background");
 
   return (
-    <ThemedView style={[styles.page, { backgroundColor: background }]}> 
+    <ThemedView style={[styles.page, { backgroundColor: background }]}>
       <ScrollView contentContainerStyle={styles.content}>
         <BackButton />
         <ThemedText type="title" style={styles.title}>
           Cadastro
         </ThemedText>
         <ThemedText style={styles.subtitle}>
-          Registre candidatos com base em documentos de identidade e mantenha os dados em SQLite.
+          Registre candidatos com base em documentos de identidade e mantenha os
+          dados em SQLite.
         </ThemedText>
 
-        <View style={[styles.card, { backgroundColor: cardBackground }]}> 
+        <View style={[styles.card, { backgroundColor: cardBackground }]}>
           <ThemedText type="defaultSemiBold" style={styles.cardTitle}>
             Cadastro por documento
           </ThemedText>
           <ThemedText style={styles.cardDescription}>
-            Faça o cadastro do candidato incluindo foto do documento e pré-preenchimento automático.
+            Faça o cadastro do candidato incluindo foto do documento e
+            pré-preenchimento automático.
           </ThemedText>
 
-          <Pressable style={styles.primaryButton} onPress={() => router.push("./novo-candidato")}> 
+          <Pressable
+            style={styles.primaryButton}
+            onPress={() => router.push("./novo-candidato")}
+          >
             <ThemedText type="defaultSemiBold" style={styles.primaryLabel}>
               Cadastrar novo candidato
             </ThemedText>
@@ -39,14 +44,17 @@ export default function CadastroScreen() {
           <View style={styles.infoItem}>
             <ThemedText type="defaultSemiBold">Como funciona</ThemedText>
             <ThemedText style={styles.infoText}>
-              1. Preencha os dados do candidato 2. Faça upload ou tire foto do documento 3. Os campos são preenchidos automaticamente 4. Salve na base SQLite
+              1. Preencha os dados do candidato 2. Faça upload ou tire foto do
+              documento 3. Os campos são preenchidos automaticamente 4. Salve na
+              base SQLite
             </ThemedText>
           </View>
 
           <View style={styles.infoItem}>
             <ThemedText type="defaultSemiBold">Status do cadastro</ThemedText>
             <ThemedText style={styles.infoText}>
-              Os cadastros já realizados ficam disponíveis na gestão de candidatos.
+              Os cadastros já realizados ficam disponíveis na gestão de
+              candidatos.
             </ThemedText>
           </View>
         </View>

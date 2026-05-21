@@ -69,26 +69,14 @@ export default function TabLayout() {
         name="processos-seletivos"
         options={{ tabBarButton: () => null }}
       />
-      <Tabs.Screen
-        name="avaliacoes"
-        options={{ tabBarButton: () => null }}
-      />
-      <Tabs.Screen
-        name="documentacao"
-        options={{ tabBarButton: () => null }}
-      />
-      <Tabs.Screen
-        name="comunicacao"
-        options={{ tabBarButton: () => null }}
-      />
+      <Tabs.Screen name="avaliacoes" options={{ tabBarButton: () => null }} />
+      <Tabs.Screen name="documentacao" options={{ tabBarButton: () => null }} />
+      <Tabs.Screen name="comunicacao" options={{ tabBarButton: () => null }} />
       <Tabs.Screen
         name="adicionar-documentos"
         options={{ tabBarButton: () => null }}
       />
-      <Tabs.Screen
-        name="explore"
-        options={{ tabBarButton: () => null }}
-      />
+      <Tabs.Screen name="explore" options={{ tabBarButton: () => null }} />
     </Tabs>
   );
 }

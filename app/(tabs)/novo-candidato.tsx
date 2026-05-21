@@ -1,12 +1,12 @@
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  View,
+    Image,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    TextInput,
+    View,
 } from "react-native";
 
 import { BackButton } from "@/components/back-button";
@@ -15,7 +15,7 @@ import * as ImagePicker from "expo-image-picker";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useThemeColor } from "@/hooks/use-theme-color";
-import { insertCandidate, insertDocument, initDatabase } from "@/lib/db";
+import { initDatabase, insertCandidate, insertDocument } from "@/lib/db";
 
 const documentTypes = ["RG", "CPF", "CNH", "Passaporte"];
 
@@ -38,7 +38,9 @@ export default function NovoCandidatoScreen() {
   const inputBorder = useThemeColor({ light: "#d1d5db" }, "background");
 
   useEffect(() => {
-    initDatabase().catch((error) => console.error("Erro ao inicializar DB", error));
+    initDatabase().catch((error) =>
+      console.error("Erro ao inicializar DB", error),
+    );
   }, []);
 
   const autoFillDocumentData = (uri: string) => {
@@ -69,7 +71,8 @@ export default function NovoCandidatoScreen() {
   };
 
   const pickDocumentPhoto = async () => {
-    const libraryPermission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const libraryPermission =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!libraryPermission.granted) {
       alert("Permissão de acesso à galeria foi negada.");
       return;
@@ -144,17 +147,18 @@ export default function NovoCandidatoScreen() {
   };
 
   return (
-    <ThemedView style={[styles.page, { backgroundColor: background }]}> 
+    <ThemedView style={[styles.page, { backgroundColor: background }]}>
       <ScrollView contentContainerStyle={styles.content}>
         <BackButton />
         <ThemedText type="title" style={styles.title}>
           Novo candidato
         </ThemedText>
         <ThemedText style={styles.subtitle}>
-          Cadastre o candidato usando o documento de identidade e foto do documento.
+          Cadastre o candidato usando o documento de identidade e foto do
+          documento.
         </ThemedText>
 
-        <View style={[styles.form, { backgroundColor: cardBackground }]}> 
+        <View style={[styles.form, { backgroundColor: cardBackground }]}>
           <View style={styles.inputGroup}>
             <ThemedText style={styles.label}>Tipo de documento</ThemedText>
             <View style={styles.typeRow}>
@@ -163,9 +167,12 @@ export default function NovoCandidatoScreen() {
                   key={type}
                   style={[
                     styles.documentTypeButton,
-                    formData.documentoTipo === type && styles.documentTypeActive,
+                    formData.documentoTipo === type &&
+                      styles.documentTypeActive,
                   ]}
-                  onPress={() => setFormData({ ...formData, documentoTipo: type })}
+                  onPress={() =>
+                    setFormData({ ...formData, documentoTipo: type })
+                  }
                 >
                   <ThemedText
                     style={
@@ -215,7 +222,9 @@ export default function NovoCandidatoScreen() {
             <ThemedText style={styles.label}>Telefone</ThemedText>
             <TextInput
               value={formData.telefone}
-              onChangeText={(text) => setFormData({ ...formData, telefone: text })}
+              onChangeText={(text) =>
+                setFormData({ ...formData, telefone: text })
+              }
               placeholder="(11) 99999-9999"
               placeholderTextColor="#9ca3af"
               keyboardType="phone-pad"
@@ -245,7 +254,9 @@ export default function NovoCandidatoScreen() {
             <ThemedText style={styles.label}>Número do documento</ThemedText>
             <TextInput
               value={formData.documentoNumero}
-              onChangeText={(text) => setFormData({ ...formData, documentoNumero: text })}
+              onChangeText={(text) =>
+                setFormData({ ...formData, documentoNumero: text })
+              }
               placeholder="Número do documento"
               placeholderTextColor="#9ca3af"
               style={[
@@ -259,7 +270,9 @@ export default function NovoCandidatoScreen() {
             <ThemedText style={styles.label}>Data de nascimento</ThemedText>
             <TextInput
               value={formData.dataNascimento}
-              onChangeText={(text) => setFormData({ ...formData, dataNascimento: text })}
+              onChangeText={(text) =>
+                setFormData({ ...formData, dataNascimento: text })
+              }
               placeholder="DD/MM/AAAA"
               placeholderTextColor="#9ca3af"
               keyboardType="numeric"
@@ -271,11 +284,21 @@ export default function NovoCandidatoScreen() {
           </View>
 
           <View style={styles.documentActions}>
-            <Pressable style={styles.documentButton} onPress={pickDocumentPhoto}>
-              <ThemedText style={styles.documentButtonText}>Selecionar foto</ThemedText>
+            <Pressable
+              style={styles.documentButton}
+              onPress={pickDocumentPhoto}
+            >
+              <ThemedText style={styles.documentButtonText}>
+                Selecionar foto
+              </ThemedText>
             </Pressable>
-            <Pressable style={styles.documentButton} onPress={takeDocumentPhoto}>
-              <ThemedText style={styles.documentButtonText}>Tirar foto</ThemedText>
+            <Pressable
+              style={styles.documentButton}
+              onPress={takeDocumentPhoto}
+            >
+              <ThemedText style={styles.documentButtonText}>
+                Tirar foto
+              </ThemedText>
             </Pressable>
           </View>
 
@@ -392,4 +415,3 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
-
