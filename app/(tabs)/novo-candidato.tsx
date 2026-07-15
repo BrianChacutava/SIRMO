@@ -1,23 +1,30 @@
+import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-    Image,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    TextInput,
-    View,
+  ActivityIndicator,
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  View,
 } from "react-native";
 
 import { BackButton } from "@/components/back-button";
-import * as ImagePicker from "expo-image-picker";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { initDatabase, insertCandidate, insertDocument } from "@/lib/db";
 
-const documentTypes = ["RG", "CPF", "CNH", "Passaporte"];
+declare const process: { env?: Record<string, string | undefined> };
+
+const documentTypes = ["BI", "Passaporte", "Carta de Condução", "NUIT"];
+const aiApiKey = process.env?.EXPO_PUBLIC_OPENAI_API_KEY ?? "";
+const aiEndpoint =
+  process.env?.EXPO_PUBLIC_AI_ENDPOINT ?? "https://api.openai.com/v1/chat/completions";
+const aiModel = process.env?.EXPO_PUBLIC_AI_MODEL ?? "gpt-4.1-mini";
 
 export default function NovoCandidatoScreen() {
   const router = useRouter();
@@ -27,10 +34,19 @@ export default function NovoCandidatoScreen() {
     telefone: "",
     cpf: "",
     dataNascimento: "",
-    documentoTipo: "RG",
+    documentoTipo: "BI",
     documentoNumero: "",
     documentoFotoUri: "",
+    naturalidade: "",
+    enderecoResidencial: "",
+    sexo: "",
+    altura: "",
   });
+  const [fillMode, setFillMode] = useState<"automatic" | "manual">(
+    "automatic",
+  );
+  const [extractionHint, setExtractionHint] = useState("");
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const background = useThemeColor({ light: "#f8fafc" }, "background");
   const cardBackground = useThemeColor({ light: "#ffffff" }, "background");
@@ -43,64 +59,278 @@ export default function NovoCandidatoScreen() {
     );
   }, []);
 
-  const autoFillDocumentData = (uri: string) => {
-    const updates: Partial<typeof formData> = { documentoFotoUri: uri };
+  const getSuggestedProfile = (documentType: string) => {
+    switch (documentType) {
+      case "BI":
+        return {
+          nome: "Maria João Machel",
+          documentoNumero: "1234567890",
+          cpf: "12345678910",
+          dataNascimento: "01/01/1990",
+          naturalidade: "Maputo, Moçambique",
+          enderecoResidencial: "Rua da Liberdade, 123 - Maputo",
+          sexo: "Feminino",
+          altura: "1,68 m",
+        };
+      case "Passaporte":
+        return {
+          nome: "José Manuel Nhamire",
+          documentoNumero: "P1234567",
+          cpf: "12345678910",
+          dataNascimento: "15/04/1988",
+          naturalidade: "Nampula, Moçambique",
+          enderecoResidencial: "Av. 25 de Setembro, 456 - Nampula",
+          sexo: "Masculino",
+          altura: "1,80 m",
+        };
+      case "Carta de Condução":
+        return {
+          nome: "Rafael Alberto Chissano",
+          documentoNumero: "CC123456",
+          cpf: "12345678910",
+          dataNascimento: "22/09/1994",
+          naturalidade: "Beira, Moçambique",
+          enderecoResidencial: "Rua do Comercio, 89 - Beira",
+          sexo: "Masculino",
+          altura: "1,76 m",
+        };
+      case "NUIT":
+        return {
+          nome: "Anita de Sousa",
+          documentoNumero: "NUIT123456789",
+          cpf: "12345678910",
+          dataNascimento: "07/03/1992",
+          naturalidade: "Xai-Xai, Moçambique",
+          enderecoResidencial: "Av. 4 de Outubro, 303 - Xai-Xai",
+          sexo: "Feminino",
+          altura: "1,70 m",
+        };
+      default:
+        return {
+          nome: "",
+          documentoNumero: "",
+          cpf: "",
+          dataNascimento: "",
+          naturalidade: "",
+          enderecoResidencial: "",
+          sexo: "",
+          altura: "",
+        };
+    }
+  };
 
-    if (formData.documentoTipo === "RG") {
-      updates.documentoNumero = "12.345.678-9";
-      if (!formData.cpf) updates.cpf = "123.456.789-00";
-      if (!formData.dataNascimento) updates.dataNascimento = "01/01/1990";
+  const parseAiExtraction = (content: string) => {
+    const cleaned = content.replace(/```json|```/g, "").trim();
+
+    try {
+      return JSON.parse(cleaned);
+    } catch {
+      const match = cleaned.match(/\{[\s\S]*\}/);
+      if (!match) return null;
+
+      try {
+        return JSON.parse(match[0]);
+      } catch {
+        return null;
+      }
+    }
+  };
+
+  const extractDocumentDataWithAI = async (
+    imageBase64: string,
+    mimeType: string,
+    documentType: string,
+  ) => {
+    if (!aiApiKey) {
+      return null;
     }
 
-    if (formData.documentoTipo === "CPF") {
-      updates.cpf = "123.456.789-00";
-      if (!formData.documentoNumero) updates.documentoNumero = "000000000";
+    const response = await fetch(aiEndpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${aiApiKey}`,
+      },
+      body: JSON.stringify({
+        model: aiModel,
+        messages: [
+          {
+            role: "system",
+            content:
+              "Você é um assistente especializado em leitura de documentos de identificação. Retorne apenas um JSON válido com os campos nome, documentoNumero, cpf, dataNascimento, naturalidade, enderecoResidencial, sexo e altura. Se algum valor não for encontrado, use string vazia.",
+          },
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: `Analise esta imagem de um documento ${documentType} de Moçambique. Retorne um JSON com os dados pessoais do titular.`,
+              },
+              {
+                type: "image_url",
+                image_url: {
+                  url: `data:${mimeType};base64,${imageBase64}`,
+                },
+              },
+            ],
+          },
+        ],
+        temperature: 0.2,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Não foi possível ler o documento com IA.");
     }
 
-    if (formData.documentoTipo === "CNH") {
-      updates.documentoNumero = "ABC123456";
-      if (!formData.cpf) updates.cpf = "123.456.789-00";
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content;
+
+    if (typeof content !== "string") {
+      throw new Error("Resposta de IA inválida.");
     }
 
-    if (formData.documentoTipo === "Passaporte") {
-      updates.documentoNumero = "BR1234567";
-      if (!formData.cpf) updates.cpf = "123.456.789-00";
+    return parseAiExtraction(content);
+  };
+
+  const handleDocumentImageSelected = async (
+    uri: string,
+    base64?: string,
+    mimeType?: string,
+  ) => {
+    if (fillMode === "manual") {
+      setExtractionHint(
+        "Modo manual ativado. Você pode preencher os dados manualmente.",
+      );
+      setFormData((current) => ({ ...current, documentoFotoUri: uri }));
+      return;
     }
 
-    setFormData((current) => ({ ...current, ...updates }));
+    setFormData((current) => ({ ...current, documentoFotoUri: uri }));
+    setExtractionHint("Lendo documento com IA...");
+    setIsAnalyzing(true);
+
+    try {
+      const currentType = formData.documentoTipo;
+      const suggestedProfile = getSuggestedProfile(currentType);
+      const aiData = base64
+        ? await extractDocumentDataWithAI(base64, mimeType ?? "image/jpeg", currentType)
+        : null;
+      const mergedData = {
+        ...suggestedProfile,
+        ...(aiData ?? {}),
+      };
+
+      setFormData((current) => ({
+        ...current,
+        documentoFotoUri: uri,
+        nome: current.nome || mergedData.nome || "",
+        documentoNumero: current.documentoNumero || mergedData.documentoNumero || "",
+        cpf: current.cpf || mergedData.cpf || "",
+        dataNascimento: current.dataNascimento || mergedData.dataNascimento || "",
+        naturalidade: current.naturalidade || mergedData.naturalidade || "",
+        enderecoResidencial:
+          current.enderecoResidencial || mergedData.enderecoResidencial || "",
+        sexo: current.sexo || mergedData.sexo || "",
+        altura: current.altura || mergedData.altura || "",
+      }));
+
+      setExtractionHint(
+        aiData
+          ? "Dados lidos com IA e preenchidos automaticamente. Você pode editar tudo manualmente."
+          : aiApiKey
+            ? "A IA não retornou um JSON válido. Os dados locais foram usados como sugestão."
+            : "Configure EXPO_PUBLIC_OPENAI_API_KEY para usar a leitura automática por IA.",
+      );
+    } catch {
+      const fallbackProfile = getSuggestedProfile(formData.documentoTipo);
+      setFormData((current) => ({
+        ...current,
+        documentoFotoUri: uri,
+        nome: current.nome || fallbackProfile.nome,
+        documentoNumero: current.documentoNumero || fallbackProfile.documentoNumero,
+        cpf: current.cpf || fallbackProfile.cpf,
+        dataNascimento: current.dataNascimento || fallbackProfile.dataNascimento,
+        naturalidade: current.naturalidade || fallbackProfile.naturalidade,
+        enderecoResidencial:
+          current.enderecoResidencial || fallbackProfile.enderecoResidencial,
+        sexo: current.sexo || fallbackProfile.sexo,
+        altura: current.altura || fallbackProfile.altura,
+      }));
+      setExtractionHint(
+        "A leitura por IA não foi concluída. Foram aplicadas sugestões locais.",
+      );
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   const pickDocumentPhoto = async () => {
-    const libraryPermission =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!libraryPermission.granted) {
-      alert("Permissão de acesso à galeria foi negada.");
-      return;
+    try {
+      const requestPermission = ImagePicker.requestMediaLibraryPermissionsAsync as
+        | ((...args: unknown[]) => Promise<{ granted?: boolean }>)
+        | undefined;
+      if (requestPermission) {
+        const libraryPermission = await requestPermission();
+        if (!libraryPermission.granted) {
+          alert("Permissão de acesso à galeria foi negada.");
+          return;
+        }
+      }
+
+      const launchLibrary = ImagePicker.launchImageLibraryAsync as
+        | ((options?: Record<string, unknown>) => Promise<{ canceled?: boolean; assets?: { uri?: string; base64?: string; mimeType?: string }[] }>)
+        | undefined;
+      if (!launchLibrary) {
+        alert("A seleção de imagem não está disponível nesta plataforma.");
+        return;
+      }
+
+      const result = await launchLibrary({
+        quality: 0.8,
+        base64: true,
+      });
+
+      if (result.canceled || !result.assets?.length) return;
+      const asset = result.assets[0];
+      await handleDocumentImageSelected(asset.uri ?? "", asset.base64, asset.mimeType);
+    } catch {
+      alert("Não foi possível abrir a galeria. Tente novamente.");
     }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.8,
-    });
-
-    if (result.canceled || result.assets.length === 0) return;
-    autoFillDocumentData(result.assets[0].uri);
   };
 
   const takeDocumentPhoto = async () => {
-    const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
-    if (!cameraPermission.granted) {
-      alert("Permissão para câmera negada.");
-      return;
+    try {
+      const requestPermission = ImagePicker.requestCameraPermissionsAsync as
+        | ((...args: unknown[]) => Promise<{ granted?: boolean }>)
+        | undefined;
+      if (requestPermission) {
+        const cameraPermission = await requestPermission();
+        if (!cameraPermission.granted) {
+          alert("Permissão para câmera negada.");
+          return;
+        }
+      }
+
+      const launchCamera = ImagePicker.launchCameraAsync as
+        | ((options?: Record<string, unknown>) => Promise<{ canceled?: boolean; assets?: { uri?: string; base64?: string; mimeType?: string }[] }>)
+        | undefined;
+      if (!launchCamera) {
+        alert("A câmera não está disponível nesta plataforma.");
+        return;
+      }
+
+      const result = await launchCamera({
+        quality: 0.8,
+        base64: true,
+      });
+
+      if (result.canceled || !result.assets?.length) return;
+      const asset = result.assets[0];
+      await handleDocumentImageSelected(asset.uri ?? "", asset.base64, asset.mimeType);
+    } catch {
+      alert("Não foi possível abrir a câmera. Tente novamente.");
     }
-
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.8,
-    });
-
-    if (result.canceled || result.assets.length === 0) return;
-    autoFillDocumentData(result.assets[0].uri);
   };
 
   const handleSubmit = async () => {
@@ -127,6 +357,10 @@ export default function NovoCandidatoScreen() {
         documentoTipo: formData.documentoTipo,
         documentoNumero: formData.documentoNumero,
         documentoFotoUri: formData.documentoFotoUri,
+        naturalidade: formData.naturalidade,
+        enderecoResidencial: formData.enderecoResidencial,
+        sexo: formData.sexo,
+        altura: formData.altura,
       });
 
       if (formData.documentoFotoUri) {
@@ -154,11 +388,47 @@ export default function NovoCandidatoScreen() {
           Novo candidato
         </ThemedText>
         <ThemedText style={styles.subtitle}>
-          Cadastre o candidato usando o documento de identidade e foto do
-          documento.
+          Cadastre o candidato usando a foto do documento e preencha os dados
+          automaticamente para Moçambique. Você também pode editar tudo manualmente.
         </ThemedText>
 
         <View style={[styles.form, { backgroundColor: cardBackground }]}>
+          <View style={styles.modeRow}>
+            <Pressable
+              style={[
+                styles.modeButton,
+                fillMode === "automatic" && styles.modeButtonActive,
+              ]}
+              onPress={() => setFillMode("automatic")}
+            >
+              <ThemedText
+                style={
+                  fillMode === "automatic"
+                    ? styles.modeButtonTextActive
+                    : styles.modeButtonText
+                }
+              >
+                Preenchimento automático
+              </ThemedText>
+            </Pressable>
+            <Pressable
+              style={[
+                styles.modeButton,
+                fillMode === "manual" && styles.modeButtonActive,
+              ]}
+              onPress={() => setFillMode("manual")}
+            >
+              <ThemedText
+                style={
+                  fillMode === "manual"
+                    ? styles.modeButtonTextActive
+                    : styles.modeButtonText
+                }
+              >
+                Inserir manualmente
+              </ThemedText>
+            </Pressable>
+          </View>
           <View style={styles.inputGroup}>
             <ThemedText style={styles.label}>Tipo de documento</ThemedText>
             <View style={styles.typeRow}>
@@ -225,7 +495,7 @@ export default function NovoCandidatoScreen() {
               onChangeText={(text) =>
                 setFormData({ ...formData, telefone: text })
               }
-              placeholder="(11) 99999-9999"
+              placeholder="+258 84 000 0000"
               placeholderTextColor="#9ca3af"
               keyboardType="phone-pad"
               style={[
@@ -283,6 +553,66 @@ export default function NovoCandidatoScreen() {
             />
           </View>
 
+          <View style={styles.inputGroup}>
+            <ThemedText style={styles.label}>Naturalidade</ThemedText>
+            <TextInput
+              value={formData.naturalidade}
+              onChangeText={(text) =>
+                setFormData({ ...formData, naturalidade: text })
+              }
+              placeholder="Maputo, Moçambique"
+              placeholderTextColor="#9ca3af"
+              style={[
+                styles.input,
+                { backgroundColor: inputBackground, borderColor: inputBorder },
+              ]}
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <ThemedText style={styles.label}>Endereço residencial</ThemedText>
+            <TextInput
+              value={formData.enderecoResidencial}
+              onChangeText={(text) =>
+                setFormData({ ...formData, enderecoResidencial: text })
+              }
+              placeholder="Rua/Av., bairro, cidade, província"
+              placeholderTextColor="#9ca3af"
+              style={[
+                styles.input,
+                { backgroundColor: inputBackground, borderColor: inputBorder },
+              ]}
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <ThemedText style={styles.label}>Sexo</ThemedText>
+            <TextInput
+              value={formData.sexo}
+              onChangeText={(text) => setFormData({ ...formData, sexo: text })}
+              placeholder="Masculino, Feminino ou Outro"
+              placeholderTextColor="#9ca3af"
+              style={[
+                styles.input,
+                { backgroundColor: inputBackground, borderColor: inputBorder },
+              ]}
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <ThemedText style={styles.label}>Altura</ThemedText>
+            <TextInput
+              value={formData.altura}
+              onChangeText={(text) => setFormData({ ...formData, altura: text })}
+              placeholder="Ex.: 1,75 m"
+              placeholderTextColor="#9ca3af"
+              style={[
+                styles.input,
+                { backgroundColor: inputBackground, borderColor: inputBorder },
+              ]}
+            />
+          </View>
+
           <View style={styles.documentActions}>
             <Pressable
               style={styles.documentButton}
@@ -301,6 +631,21 @@ export default function NovoCandidatoScreen() {
               </ThemedText>
             </Pressable>
           </View>
+
+          {isAnalyzing ? (
+            <View style={styles.helperBox}>
+              <ActivityIndicator color="#0a7ea4" />
+              <ThemedText style={styles.helperText}>
+                Lendo documento com IA...
+              </ThemedText>
+            </View>
+          ) : null}
+
+          {extractionHint ? (
+            <View style={styles.helperBox}>
+              <ThemedText style={styles.helperText}>{extractionHint}</ThemedText>
+            </View>
+          ) : null}
 
           {formData.documentoFotoUri ? (
             <Image
@@ -342,6 +687,35 @@ const styles = StyleSheet.create({
   },
   inputGroup: {
     marginBottom: 16,
+  },
+  modeRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+    marginBottom: 18,
+  },
+  modeButton: {
+    flex: 1,
+    minWidth: 140,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+    backgroundColor: "#f8fafc",
+    alignItems: "center",
+  },
+  modeButtonActive: {
+    backgroundColor: "#0a7ea4",
+    borderColor: "#0a7ea4",
+  },
+  modeButtonText: {
+    color: "#0f172a",
+    fontWeight: "600",
+  },
+  modeButtonTextActive: {
+    color: "#ffffff",
+    fontWeight: "700",
   },
   label: {
     marginBottom: 8,
@@ -395,6 +769,17 @@ const styles = StyleSheet.create({
   documentButtonText: {
     color: "#ffffff",
     fontWeight: "700",
+  },
+  helperBox: {
+    borderRadius: 14,
+    padding: 12,
+    backgroundColor: "#e0f2fe",
+    marginBottom: 14,
+  },
+  helperText: {
+    color: "#0f766e",
+    fontSize: 13,
+    marginTop: 6,
   },
   documentPreview: {
     width: "100%",

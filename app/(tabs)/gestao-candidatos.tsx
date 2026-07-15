@@ -1,7 +1,13 @@
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import {
+  FlatList,
+  Pressable,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+} from "react-native";
 
 import { BackButton } from "@/components/back-button";
 
@@ -13,9 +19,11 @@ import { Candidate, getAllCandidates, initDatabase } from "@/lib/db";
 
 export default function GestaoCandidatosScreen() {
   const router = useRouter();
+  const { width } = useWindowDimensions();
   const [candidatos, setCandidatos] = useState<Candidate[]>([]);
   const background = useThemeColor({ light: "#f8fafc" }, "background");
   const cardBackground = useThemeColor({ light: "#ffffff" }, "background");
+  const isCompact = width < 700;
 
   const loadCandidates = useCallback(async () => {
     try {
@@ -33,94 +41,123 @@ export default function GestaoCandidatosScreen() {
     }, [loadCandidates]),
   );
 
+  const formatDate = (value?: string) => {
+    if (!value) return "—";
+    return new Date(value).toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const getInitials = (name: string) => {
+    const parts = name
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2);
+
+    return parts.map((part) => part[0]?.toUpperCase() ?? "").join("");
+  };
+
+  const renderCandidate = ({ item: candidato }: { item: Candidate }) => (
+    <View
+      style={[styles.candidatoCard, isCompact && styles.candidatoCardCompact]}
+    >
+      <View style={styles.candidatoIdentity}>
+        <View style={styles.avatar}>
+          <ThemedText style={styles.avatarText}>
+            {getInitials(candidato.nome)}
+          </ThemedText>
+        </View>
+
+        <View style={styles.candidatoInfo}>
+          <ThemedText type="defaultSemiBold" numberOfLines={1}>
+            {candidato.nome}
+          </ThemedText>
+          <ThemedText style={styles.status}>
+            Documento: {candidato.documentoTipo} {candidato.documentoNumero}
+          </ThemedText>
+          <ThemedText style={styles.documentos}>CPF: {candidato.cpf}</ThemedText>
+          <ThemedText style={styles.dateText}>
+            Cadastro: {formatDate(candidato.createdAt)}
+          </ThemedText>
+        </View>
+      </View>
+
+      <View
+        style={[styles.candidatoActions, isCompact && styles.candidatoActionsCompact]}
+      >
+        <Pressable
+          style={styles.smallButton}
+          onPress={() => router.push("./adicionar-documentos")}
+        >
+          <IconSymbol name="doc.text.fill" size={16} color="#0a7ea4" />
+          <ThemedText style={styles.smallButtonLabel}>Documentos</ThemedText>
+        </Pressable>
+        <Pressable
+          style={styles.smallButton}
+          onPress={() => router.push("./status-selecao")}
+        >
+          <IconSymbol name="flag.fill" size={16} color="#0a7ea4" />
+          <ThemedText style={styles.smallButtonLabel}>Status</ThemedText>
+        </Pressable>
+        <Pressable
+          style={styles.smallButton}
+          onPress={() => router.push("./documentacao")}
+        >
+          <IconSymbol name="doc.text.fill" size={16} color="#0a7ea4" />
+          <ThemedText style={styles.smallButtonLabel}>Consulta</ThemedText>
+        </Pressable>
+      </View>
+    </View>
+  );
+
   return (
     <ThemedView style={[styles.page, { backgroundColor: background }]}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <BackButton />
-        <View style={styles.header}>
-          <ThemedText type="title" style={styles.title}>
-            Gestão de candidatos
-          </ThemedText>
-          <ThemedText style={styles.subtitle}>
-            Acompanhe o registro e os documentos dos candidatos.
-          </ThemedText>
-        </View>
+      <FlatList
+        contentContainerStyle={styles.content}
+        data={candidatos}
+        keyExtractor={(item) => String(item.id)}
+        ListHeaderComponent={
+          <>
+            <BackButton />
+            <View style={styles.header}>
+              <ThemedText type="title" style={styles.title}>
+                Gestão de candidatos
+              </ThemedText>
+              <ThemedText style={styles.subtitle}>
+                Acompanhe o registro e os documentos dos candidatos.
+              </ThemedText>
+            </View>
 
-        <View style={styles.actions}>
-          <Pressable
-            style={styles.actionButton}
-            onPress={() => router.push("/novo-candidato")}
-          >
-            <IconSymbol name="plus.circle.fill" size={20} color="#ffffff" />
-            <ThemedText style={styles.actionLabel}>Adicionar novo</ThemedText>
-          </Pressable>
-        </View>
+            <View style={styles.actions}>
+              <Pressable
+                style={styles.actionButton}
+                onPress={() => router.push("/novo-candidato")}
+              >
+                <IconSymbol name="plus.circle.fill" size={20} color="#ffffff" />
+                <ThemedText style={styles.actionLabel}>Adicionar novo</ThemedText>
+              </Pressable>
+            </View>
 
-        <View style={[styles.section, { backgroundColor: cardBackground }]}>
-          <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
-            Candidatos registrados
-          </ThemedText>
-          {candidatos.length === 0 ? (
+            <View style={[styles.section, { backgroundColor: cardBackground }]}>
+              <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
+                Candidatos registrados
+              </ThemedText>
+            </View>
+          </>
+        }
+        ListEmptyComponent={
+          <View style={[styles.section, { backgroundColor: cardBackground }]}> 
             <ThemedText style={styles.emptyText}>
               Não há candidatos cadastrados ainda.
             </ThemedText>
-          ) : (
-            candidatos.map((candidato) => (
-              <View key={candidato.id} style={styles.candidatoCard}>
-                <View style={styles.candidatoInfo}>
-                  <ThemedText type="defaultSemiBold">
-                    {candidato.nome}
-                  </ThemedText>
-                  <ThemedText style={styles.status}>
-                    Documento: {candidato.documentoTipo}{" "}
-                    {candidato.documentoNumero}
-                  </ThemedText>
-                  <ThemedText style={styles.documentos}>
-                    CPF: {candidato.cpf}
-                  </ThemedText>
-                </View>
-                <View style={styles.candidatoActions}>
-                  <Pressable
-                    style={styles.smallButton}
-                    onPress={() => router.push("./adicionar-documentos")}
-                  >
-                    <IconSymbol
-                      name="doc.text.fill"
-                      size={16}
-                      color="#0a7ea4"
-                    />
-                    <ThemedText style={styles.smallButtonLabel}>
-                      Documentos
-                    </ThemedText>
-                  </Pressable>
-                  <Pressable
-                    style={styles.smallButton}
-                    onPress={() => router.push("./status-selecao")}
-                  >
-                    <IconSymbol name="flag.fill" size={16} color="#0a7ea4" />
-                    <ThemedText style={styles.smallButtonLabel}>
-                      Status
-                    </ThemedText>
-                  </Pressable>
-                  <Pressable
-                    style={styles.smallButton}
-                    onPress={() => router.push("./documentacao")}
-                  >
-                    <IconSymbol
-                      name="doc.text.fill"
-                      size={16}
-                      color="#0a7ea4"
-                    />
-                    <ThemedText style={styles.smallButtonLabel}>
-                      Consulta
-                    </ThemedText>
-                  </Pressable>
-                </View>
-              </View>
-            ))
-          )}
-        </View>
-      </ScrollView>
+          </View>
+        }
+        renderItem={renderCandidate}
+        ItemSeparatorComponent={() => <View style={styles.separator} />}
+      />
     </ThemedView>
   );
 }

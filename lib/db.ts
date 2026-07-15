@@ -1,13 +1,31 @@
 import { Platform } from "react-native";
+import * as ExpoSQLite from "expo-sqlite";
 
-let SQLite: any = null;
+type SqlResultRow = Record<string, unknown>;
+
+interface SqlResultSet {
+  rows: {
+    length: number;
+    item: (index: number) => SqlResultRow | null;
+  };
+  insertId?: number;
+}
+
 let db: any = null;
+
 if (Platform.OS !== "web") {
-  // require dynamically to avoid bundling web-specific wasm files
-  // when running on web
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  SQLite = require("expo-sqlite");
-  db = SQLite.openDatabase("sirmo.db");
+  const openDatabase =
+    typeof (ExpoSQLite as any).openDatabaseSync === "function"
+      ? (ExpoSQLite as any).openDatabaseSync
+      : typeof (ExpoSQLite as any).openDatabase === "function"
+        ? (ExpoSQLite as any).openDatabase
+        : null;
+
+  if (!openDatabase) {
+    throw new Error("expo-sqlite does not expose a supported database API");
+  }
+
+  db = openDatabase("sirmo.db");
 }
 
 export interface Candidate {
@@ -20,6 +38,10 @@ export interface Candidate {
   documentoTipo: string;
   documentoNumero: string;
   documentoFotoUri: string;
+  naturalidade?: string;
+  enderecoResidencial?: string;
+  sexo?: string;
+  altura?: string;
   createdAt?: string;
 }
 
@@ -32,10 +54,10 @@ export interface DocumentRecord {
   createdAt?: string;
 }
 
-const executeSql = async <T = any>(
+const executeSql = async (
   sql: string,
   params: (string | number)[] = [],
-) => {
+): Promise<SqlResultSet> => {
   if (Platform.OS === "web") {
     // Not using SQLite on web; no-op placeholder to keep signatures consistent
     return Promise.resolve({
@@ -44,19 +66,59 @@ const executeSql = async <T = any>(
     });
   }
 
-  return new Promise<SQLite.SQLResultSet>((resolve, reject) => {
-    db.transaction((tx: any) => {
-      tx.executeSql(
-        sql,
-        params,
-        (_: any, result: any) => resolve(result),
-        (_: any, error: any) => {
-          reject(error);
-          return false;
+  if (!db) {
+    throw new Error("Database connection was not initialized");
+  }
+
+  const normalizedSql = sql.trim().toUpperCase();
+  const isSelect =
+    normalizedSql.startsWith("SELECT") || normalizedSql.startsWith("PRAGMA");
+
+  if (typeof db.runAsync === "function") {
+    if (isSelect) {
+      const rows = await db.getAllAsync<SqlResultRow>(sql, params);
+      return {
+        rows: {
+          length: rows.length,
+          item: (index: number) => rows[index] ?? null,
         },
-      );
-    }, reject);
-  });
+        insertId: undefined,
+      };
+    }
+
+    const result = await db.runAsync(sql, params);
+    return {
+      rows: { length: 0, item: (_: number) => null },
+      insertId: result?.lastInsertRowId ?? result?.insertId,
+    };
+  }
+
+  if (typeof db.transaction === "function") {
+    return new Promise<SqlResultSet>((resolve, reject) => {
+      db.transaction((tx: any) => {
+        tx.executeSql(
+          sql,
+          params,
+          (_: any, result: any) => {
+            const rows = result?.rows ?? { length: 0, item: () => null };
+            resolve({
+              rows: {
+                length: rows.length,
+                item: (index: number) => rows.item(index),
+              },
+              insertId: result?.insertId,
+            });
+          },
+          (_: any, error: any) => {
+            reject(error);
+            return false;
+          },
+        );
+      }, reject);
+    });
+  }
+
+  throw new Error("Database connection does not support SQL execution");
 };
 
 export const initDatabase = async (): Promise<void> => {
@@ -77,8 +139,24 @@ export const initDatabase = async (): Promise<void> => {
       documentoTipo TEXT NOT NULL,
       documentoNumero TEXT NOT NULL,
       documentoFotoUri TEXT,
+      naturalidade TEXT,
+      enderecoResidencial TEXT,
+      sexo TEXT,
+      altura TEXT,
       createdAt TEXT DEFAULT (datetime('now'))
     );`,
+  );
+  await executeSql(`ALTER TABLE candidates ADD COLUMN naturalidade TEXT;`).catch(
+    () => undefined,
+  );
+  await executeSql(
+    `ALTER TABLE candidates ADD COLUMN enderecoResidencial TEXT;`,
+  ).catch(() => undefined);
+  await executeSql(`ALTER TABLE candidates ADD COLUMN sexo TEXT;`).catch(
+    () => undefined,
+  );
+  await executeSql(`ALTER TABLE candidates ADD COLUMN altura TEXT;`).catch(
+    () => undefined,
   );
   await executeSql(
     `CREATE TABLE IF NOT EXISTS documents (
@@ -112,7 +190,7 @@ export const insertCandidate = async (
   }
 
   const result = await executeSql(
-    `INSERT INTO candidates (nome, email, telefone, cpf, dataNascimento, documentoTipo, documentoNumero, documentoFotoUri) VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
+    `INSERT INTO candidates (nome, email, telefone, cpf, dataNascimento, documentoTipo, documentoNumero, documentoFotoUri, naturalidade, enderecoResidencial, sexo, altura) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
     [
       candidate.nome,
       candidate.email,
@@ -122,6 +200,10 @@ export const insertCandidate = async (
       candidate.documentoTipo,
       candidate.documentoNumero,
       candidate.documentoFotoUri,
+      candidate.naturalidade ?? "",
+      candidate.enderecoResidencial ?? "",
+      candidate.sexo ?? "",
+      candidate.altura ?? "",
     ],
   );
 
@@ -235,7 +317,7 @@ export const updateCandidate = async (candidate: Candidate): Promise<void> => {
   }
 
   await executeSql(
-    `UPDATE candidates SET nome = ?, email = ?, telefone = ?, cpf = ?, dataNascimento = ?, documentoTipo = ?, documentoNumero = ?, documentoFotoUri = ? WHERE id = ?;`,
+    `UPDATE candidates SET nome = ?, email = ?, telefone = ?, cpf = ?, dataNascimento = ?, documentoTipo = ?, documentoNumero = ?, documentoFotoUri = ?, naturalidade = ?, enderecoResidencial = ?, sexo = ?, altura = ? WHERE id = ?;`,
     [
       candidate.nome,
       candidate.email,
@@ -245,6 +327,10 @@ export const updateCandidate = async (candidate: Candidate): Promise<void> => {
       candidate.documentoTipo,
       candidate.documentoNumero,
       candidate.documentoFotoUri,
+      candidate.naturalidade ?? "",
+      candidate.enderecoResidencial ?? "",
+      candidate.sexo ?? "",
+      candidate.altura ?? "",
       candidate.id,
     ],
   );
