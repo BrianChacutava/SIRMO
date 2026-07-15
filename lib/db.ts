@@ -1,5 +1,5 @@
-import { Platform } from "react-native";
 import * as ExpoSQLite from "expo-sqlite";
+import { Platform } from "react-native";
 
 type SqlResultRow = Record<string, unknown>;
 
@@ -146,9 +146,9 @@ export const initDatabase = async (): Promise<void> => {
       createdAt TEXT DEFAULT (datetime('now'))
     );`,
   );
-  await executeSql(`ALTER TABLE candidates ADD COLUMN naturalidade TEXT;`).catch(
-    () => undefined,
-  );
+  await executeSql(
+    `ALTER TABLE candidates ADD COLUMN naturalidade TEXT;`,
+  ).catch(() => undefined);
   await executeSql(
     `ALTER TABLE candidates ADD COLUMN enderecoResidencial TEXT;`,
   ).catch(() => undefined);

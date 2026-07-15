@@ -2,11 +2,11 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import {
-  FlatList,
-  Pressable,
-  StyleSheet,
-  useWindowDimensions,
-  View,
+    FlatList,
+    Pressable,
+    StyleSheet,
+    useWindowDimensions,
+    View,
 } from "react-native";
 
 import { BackButton } from "@/components/back-button";
@@ -51,11 +51,7 @@ export default function GestaoCandidatosScreen() {
   };
 
   const getInitials = (name: string) => {
-    const parts = name
-      .trim()
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2);
+    const parts = name.trim().split(/\s+/).filter(Boolean).slice(0, 2);
 
     return parts.map((part) => part[0]?.toUpperCase() ?? "").join("");
   };
@@ -78,7 +74,9 @@ export default function GestaoCandidatosScreen() {
           <ThemedText style={styles.status}>
             Documento: {candidato.documentoTipo} {candidato.documentoNumero}
           </ThemedText>
-          <ThemedText style={styles.documentos}>CPF: {candidato.cpf}</ThemedText>
+          <ThemedText style={styles.documentos}>
+            CPF: {candidato.cpf}
+          </ThemedText>
           <ThemedText style={styles.dateText}>
             Cadastro: {formatDate(candidato.createdAt)}
           </ThemedText>
@@ -86,7 +84,10 @@ export default function GestaoCandidatosScreen() {
       </View>
 
       <View
-        style={[styles.candidatoActions, isCompact && styles.candidatoActionsCompact]}
+        style={[
+          styles.candidatoActions,
+          isCompact && styles.candidatoActionsCompact,
+        ]}
       >
         <Pressable
           style={styles.smallButton}
@@ -137,7 +138,9 @@ export default function GestaoCandidatosScreen() {
                 onPress={() => router.push("/novo-candidato")}
               >
                 <IconSymbol name="plus.circle.fill" size={20} color="#ffffff" />
-                <ThemedText style={styles.actionLabel}>Adicionar novo</ThemedText>
+                <ThemedText style={styles.actionLabel}>
+                  Adicionar novo
+                </ThemedText>
               </Pressable>
             </View>
 
@@ -149,7 +152,7 @@ export default function GestaoCandidatosScreen() {
           </>
         }
         ListEmptyComponent={
-          <View style={[styles.section, { backgroundColor: cardBackground }]}> 
+          <View style={[styles.section, { backgroundColor: cardBackground }]}>
             <ThemedText style={styles.emptyText}>
               Não há candidatos cadastrados ainda.
             </ThemedText>

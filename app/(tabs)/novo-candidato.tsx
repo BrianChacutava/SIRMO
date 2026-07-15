@@ -2,13 +2,13 @@ import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  View,
+    ActivityIndicator,
+    Image,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    TextInput,
+    View,
 } from "react-native";
 
 import { BackButton } from "@/components/back-button";
@@ -23,7 +23,8 @@ declare const process: { env?: Record<string, string | undefined> };
 const documentTypes = ["BI", "Passaporte", "Carta de Condução", "NUIT"];
 const aiApiKey = process.env?.EXPO_PUBLIC_OPENAI_API_KEY ?? "";
 const aiEndpoint =
-  process.env?.EXPO_PUBLIC_AI_ENDPOINT ?? "https://api.openai.com/v1/chat/completions";
+  process.env?.EXPO_PUBLIC_AI_ENDPOINT ??
+  "https://api.openai.com/v1/chat/completions";
 const aiModel = process.env?.EXPO_PUBLIC_AI_MODEL ?? "gpt-4.1-mini";
 
 export default function NovoCandidatoScreen() {
@@ -42,9 +43,7 @@ export default function NovoCandidatoScreen() {
     sexo: "",
     altura: "",
   });
-  const [fillMode, setFillMode] = useState<"automatic" | "manual">(
-    "automatic",
-  );
+  const [fillMode, setFillMode] = useState<"automatic" | "manual">("automatic");
   const [extractionHint, setExtractionHint] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
@@ -214,7 +213,11 @@ export default function NovoCandidatoScreen() {
       const currentType = formData.documentoTipo;
       const suggestedProfile = getSuggestedProfile(currentType);
       const aiData = base64
-        ? await extractDocumentDataWithAI(base64, mimeType ?? "image/jpeg", currentType)
+        ? await extractDocumentDataWithAI(
+            base64,
+            mimeType ?? "image/jpeg",
+            currentType,
+          )
         : null;
       const mergedData = {
         ...suggestedProfile,
@@ -225,9 +228,11 @@ export default function NovoCandidatoScreen() {
         ...current,
         documentoFotoUri: uri,
         nome: current.nome || mergedData.nome || "",
-        documentoNumero: current.documentoNumero || mergedData.documentoNumero || "",
+        documentoNumero:
+          current.documentoNumero || mergedData.documentoNumero || "",
         cpf: current.cpf || mergedData.cpf || "",
-        dataNascimento: current.dataNascimento || mergedData.dataNascimento || "",
+        dataNascimento:
+          current.dataNascimento || mergedData.dataNascimento || "",
         naturalidade: current.naturalidade || mergedData.naturalidade || "",
         enderecoResidencial:
           current.enderecoResidencial || mergedData.enderecoResidencial || "",
@@ -248,9 +253,11 @@ export default function NovoCandidatoScreen() {
         ...current,
         documentoFotoUri: uri,
         nome: current.nome || fallbackProfile.nome,
-        documentoNumero: current.documentoNumero || fallbackProfile.documentoNumero,
+        documentoNumero:
+          current.documentoNumero || fallbackProfile.documentoNumero,
         cpf: current.cpf || fallbackProfile.cpf,
-        dataNascimento: current.dataNascimento || fallbackProfile.dataNascimento,
+        dataNascimento:
+          current.dataNascimento || fallbackProfile.dataNascimento,
         naturalidade: current.naturalidade || fallbackProfile.naturalidade,
         enderecoResidencial:
           current.enderecoResidencial || fallbackProfile.enderecoResidencial,
@@ -267,9 +274,10 @@ export default function NovoCandidatoScreen() {
 
   const pickDocumentPhoto = async () => {
     try {
-      const requestPermission = ImagePicker.requestMediaLibraryPermissionsAsync as
-        | ((...args: unknown[]) => Promise<{ granted?: boolean }>)
-        | undefined;
+      const requestPermission =
+        ImagePicker.requestMediaLibraryPermissionsAsync as
+          | ((...args: unknown[]) => Promise<{ granted?: boolean }>)
+          | undefined;
       if (requestPermission) {
         const libraryPermission = await requestPermission();
         if (!libraryPermission.granted) {
@@ -279,7 +287,12 @@ export default function NovoCandidatoScreen() {
       }
 
       const launchLibrary = ImagePicker.launchImageLibraryAsync as
-        | ((options?: Record<string, unknown>) => Promise<{ canceled?: boolean; assets?: { uri?: string; base64?: string; mimeType?: string }[] }>)
+        | ((
+            options?: Record<string, unknown>,
+          ) => Promise<{
+            canceled?: boolean;
+            assets?: { uri?: string; base64?: string; mimeType?: string }[];
+          }>)
         | undefined;
       if (!launchLibrary) {
         alert("A seleção de imagem não está disponível nesta plataforma.");
@@ -293,7 +306,11 @@ export default function NovoCandidatoScreen() {
 
       if (result.canceled || !result.assets?.length) return;
       const asset = result.assets[0];
-      await handleDocumentImageSelected(asset.uri ?? "", asset.base64, asset.mimeType);
+      await handleDocumentImageSelected(
+        asset.uri ?? "",
+        asset.base64,
+        asset.mimeType,
+      );
     } catch {
       alert("Não foi possível abrir a galeria. Tente novamente.");
     }
@@ -313,7 +330,12 @@ export default function NovoCandidatoScreen() {
       }
 
       const launchCamera = ImagePicker.launchCameraAsync as
-        | ((options?: Record<string, unknown>) => Promise<{ canceled?: boolean; assets?: { uri?: string; base64?: string; mimeType?: string }[] }>)
+        | ((
+            options?: Record<string, unknown>,
+          ) => Promise<{
+            canceled?: boolean;
+            assets?: { uri?: string; base64?: string; mimeType?: string }[];
+          }>)
         | undefined;
       if (!launchCamera) {
         alert("A câmera não está disponível nesta plataforma.");
@@ -327,7 +349,11 @@ export default function NovoCandidatoScreen() {
 
       if (result.canceled || !result.assets?.length) return;
       const asset = result.assets[0];
-      await handleDocumentImageSelected(asset.uri ?? "", asset.base64, asset.mimeType);
+      await handleDocumentImageSelected(
+        asset.uri ?? "",
+        asset.base64,
+        asset.mimeType,
+      );
     } catch {
       alert("Não foi possível abrir a câmera. Tente novamente.");
     }
@@ -389,7 +415,8 @@ export default function NovoCandidatoScreen() {
         </ThemedText>
         <ThemedText style={styles.subtitle}>
           Cadastre o candidato usando a foto do documento e preencha os dados
-          automaticamente para Moçambique. Você também pode editar tudo manualmente.
+          automaticamente para Moçambique. Você também pode editar tudo
+          manualmente.
         </ThemedText>
 
         <View style={[styles.form, { backgroundColor: cardBackground }]}>
@@ -603,7 +630,9 @@ export default function NovoCandidatoScreen() {
             <ThemedText style={styles.label}>Altura</ThemedText>
             <TextInput
               value={formData.altura}
-              onChangeText={(text) => setFormData({ ...formData, altura: text })}
+              onChangeText={(text) =>
+                setFormData({ ...formData, altura: text })
+              }
               placeholder="Ex.: 1,75 m"
               placeholderTextColor="#9ca3af"
               style={[
@@ -643,7 +672,9 @@ export default function NovoCandidatoScreen() {
 
           {extractionHint ? (
             <View style={styles.helperBox}>
-              <ThemedText style={styles.helperText}>{extractionHint}</ThemedText>
+              <ThemedText style={styles.helperText}>
+                {extractionHint}
+              </ThemedText>
             </View>
           ) : null}
 
